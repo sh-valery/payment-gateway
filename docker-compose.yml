@@ -10,6 +10,7 @@ services:
   payment_gateway:
     depends_on:
       - db
+      - bank_simulator
     build: ./payment_gateway
     volumes:
       - log_volume:/var/log
