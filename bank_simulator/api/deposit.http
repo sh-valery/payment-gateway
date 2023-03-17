@@ -1,0 +1,30 @@
+### Send POST request with json body
+POST http://localhost:8080/api/v1/deposit
+Content-Type: application/json
+
+{
+  "card": {
+    "number": "4242424242424242",
+    "expiry": "2020-12-31",
+    "cvv": "123",
+    "holder_name": "John Doe"
+  },
+  "amount": 1000,
+  "currency": "USD"
+}
+
+> {%
+
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 201, "Response status is not 200");
+});
+
+client.test("Response content-type is json", function() {
+  var type = response.contentType.mimeType;
+  client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+});
+
+client.test("Positive card code", function() {
+  client.assert(response.body.hasOwnProperty("headers"), "Cannot find 'headers' option in response");
+});
+%}
