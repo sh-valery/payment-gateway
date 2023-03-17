@@ -1,0 +1,46 @@
+volumes:
+  mysql_data:
+  log_volume:
+
+networks:
+  monitoring:
+  backend:
+
+services:
+  payment_gateway:
+    depends_on:
+      - db
+    build: ./payment_gateway
+    volumes:
+      - log_volume:/var/log
+    ports:
+      - "8080:8080"
+    networks:
+      - monitoring
+      - backend
+    environment:
+      - "GIN_MODE=release"
+    command: [ "/bin/sh", "-c", "/app/run_web_server -host fx:50051 > /var/log/gateway.log" ]
+
+  db:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: payment_gateway
+    volumes:
+      - mysql_data:/var/lib/mysql
+    ports:
+      - 3306:3306
+    networks:
+      - monitoring
+      - backend
+
+  bank_simulator:
+    build: ./bank_simulator
+    volumes:
+      - log_volume:/var/log
+    networks:
+      - monitoring
+      - backend
+    command: [ "/bin/sh", "-c", "/app/run_bank_server > /var/log/bank.log" ]
