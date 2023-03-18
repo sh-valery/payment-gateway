@@ -1,2 +1,3 @@
 generate_swagger_docs:
-	 swag init
+	cd ./cmd/web_server && swag init --parseDependency  --dir .,../../internal/transport/
+

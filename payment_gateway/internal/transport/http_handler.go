@@ -55,6 +55,17 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 
 }
 
+// PaymentStatus
+// @Summary      Get Payment Status
+// @Description  Get Payment Status by id
+// @Tags         payment
+// @Accept       json
+// @Produce      json
+// @Param        id   path      int  true  "Transaction ID"
+// @Success      200  {object}  PaymentResponse
+// @Failure      400  string      string  "Bad Request"
+// @Router       /payment/{id} [get]
 func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("PaymentStatus request", req)
+	w.WriteHeader(http.StatusOK)
 }

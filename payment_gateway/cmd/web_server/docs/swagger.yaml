@@ -1,0 +1,46 @@
+basePath: /api/v1/
+definitions:
+  transport.PaymentResponse:
+    properties:
+      code:
+        type: string
+      status:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: Valery
+    url: http://linkedin.com/in/valeryshapetin/
+  description: HTTP API for payment gateway
+  title: Payment Gateway
+  version: "1.0"
+paths:
+  /payment/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Payment Status by id
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      summary: Get Payment Status
+      tags:
+      - payment
+schemes:
+- https
+swagger: "2.0"
