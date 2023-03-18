@@ -26,6 +26,7 @@ import (
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 
+	// create db connection
 	logger.Println("Connecting to database...")
 	db, err := sql.Open("mysql", "username:password@tcp(db:3306)/payment_gateway")
 	if err != nil {
@@ -33,26 +34,22 @@ func main() {
 	}
 	defer db.Close()
 
+	// create service
 	logger.Println("Creating payment service...")
 	repository := payment.NewPaymentRepository(db)
-	service := payment.NewPaymentService(repository)
+	uuidGenerator := payment.UUID{}
+	service := payment.NewPaymentService(repository, nil, nil, uuidGenerator)
 	handler := transport.NewHandler(service, logger)
 
-	//http.HandleFunc("/api/v1/payment", handler.Payment)
-	//http.HandleFunc("/api/v1/payment/status", handler.PaymentStatus)
-	//
-	//http.HandleFunc("/swagger/{*}", httpSwagger.Handler(
-	//	httpSwagger.URL("http://localhost:8080/docs/swagger.json"), //The url pointing to API definition
-	//))
-
+	// set routing
 	r := chi.NewRouter()
-
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/docs/doc.json"), //The url pointing to API definition
 	))
 	r.Post("/api/v1/payment", handler.Payment)
 	r.Get("/api/v1/payment/status", handler.PaymentStatus)
 
+	// start server
 	logger.Println("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		log.Fatal(err)

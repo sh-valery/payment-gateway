@@ -50,8 +50,13 @@ type ServiceImpl struct {
 	uuid          UUIDGenerator
 }
 
-func NewPaymentService(repo Repository) Service {
-	return &ServiceImpl{repo: repo}
+func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardTokenizer, uuid UUIDGenerator) Service {
+	return &ServiceImpl{
+		repo:          repo,
+		cardProcessor: processor,
+		pi:            tokenizer,
+		uuid:          uuid,
+	}
 }
 
 func (s *ServiceImpl) ProcessPayment(payment *Payment) (*Payment, error) {
