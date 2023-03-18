@@ -1,4 +1,4 @@
-module github.com/sh-valery/payment-gateway
+module github.com/sh-valery/payment-gateway/payment_gateway
 
 go 1.19
 

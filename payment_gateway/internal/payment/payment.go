@@ -56,18 +56,20 @@ func NewPaymentService(repo Repository) Service {
 
 func (s *ServiceImpl) ProcessPayment(payment *Payment) (*Payment, error) {
 	// Use a payment processor to tokenize the card data and retrieve a card token
-	card := payment.CardInfo
-	_, err := s.pi.TokenizeCard(card.CardNumber, card.ExpiryMonth, card.ExpiryYear, card.CVV)
-	if err != nil {
-		return nil, err
-	}
+	//card := payment.CardInfo
+
+	// todo tokenize card
+	//_, err := s.pi.TokenizeCard(card.CardNumber, card.ExpiryMonth, card.ExpiryYear, card.CVV)
+	//if err != nil {
+	//	return nil, err
+	//}
 
 	// Create a payment entity with the card token and other payment details
 	payment.ID = s.uuid.New()
 	payment.Status = "initiated"
 
 	// Store the payment in the repository
-	err = s.repo.Store(payment)
+	err := s.repo.Store(payment)
 	if err != nil {
 		return nil, err
 	}

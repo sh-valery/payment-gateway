@@ -25,7 +25,7 @@ func NewHandler(service payment.Service, logger *log.Logger) *Handler {
 }
 
 type PaymentRequest struct {
-	Payment *payment.Payment `json:"payment"`
+	*payment.Payment
 }
 
 type PaymentResponse struct {

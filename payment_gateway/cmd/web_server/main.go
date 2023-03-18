@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"github.com/go-chi/chi"
 	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/sh-valery/payment-gateway/cmd/web_server/docs"
-	"github.com/sh-valery/payment-gateway/internal/payment"
-	"github.com/sh-valery/payment-gateway/internal/transport"
+	_ "github.com/sh-valery/payment-gateway/payment_gateway/cmd/web_server/docs"
+	"github.com/sh-valery/payment-gateway/payment_gateway/internal/payment"
+	"github.com/sh-valery/payment-gateway/payment_gateway/internal/transport"
 	_ "github.com/swaggo/http-swagger"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
@@ -23,7 +23,6 @@ import (
 // @schemes   https
 // @host       localhost:8080
 // @BasePath  /api/v1/
-
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 
@@ -51,10 +50,8 @@ func main() {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/docs/doc.json"), //The url pointing to API definition
 	))
-	r.HandleFunc("/api/v1/payment", handler.Payment)
-	r.HandleFunc("/api/v1/payment/status", handler.PaymentStatus)
-
-	//http.ListenAndServe(":1323", r)
+	r.Post("/api/v1/payment", handler.Payment)
+	r.Get("/api/v1/payment/status", handler.PaymentStatus)
 
 	logger.Println("Starting server at port 8080\n")
 	if err := http.ListenAndServe(":8080", r); err != nil {

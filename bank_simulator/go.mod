@@ -1,4 +1,4 @@
-module github.com/sh-valery/payment-gateway
+module github.com/sh-valery/payment-gateway/bank_simulator
 
 go 1.19
 

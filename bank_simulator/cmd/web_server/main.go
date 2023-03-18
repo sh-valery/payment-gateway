@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-	"github.com/sh-valery/payment-gateway/internal/bank"
-	"github.com/sh-valery/payment-gateway/internal/transport"
+	"github.com/sh-valery/payment-gateway/bank_simulator/internal/bank"
+	"github.com/sh-valery/payment-gateway/bank_simulator/internal/transport"
 	"log"
 	"net/http"
 )
