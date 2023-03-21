@@ -3,7 +3,8 @@ package payment
 import "context"
 
 type Repository interface {
-	Store(payment *Payment) error
+	Create(payment *Payment) error
+	UpdateStatus(payment *Payment) error
 	GetByID(ID string) (*Payment, error)
 }
 
@@ -54,8 +55,8 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 	payment.ID = s.uuid.New()
 	payment.Status = "initiated"
 
-	// Store the payment in the repository
-	err := s.repo.Store(payment)
+	// Create the payment in the repository
+	err := s.repo.Create(payment)
 	if err != nil {
 		return err
 	}
@@ -65,7 +66,7 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 		return err
 	}
 
-	err = s.repo.Store(payment)
+	err = s.repo.UpdateStatus(payment)
 	if err != nil {
 		return err
 	}

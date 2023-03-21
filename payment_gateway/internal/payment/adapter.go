@@ -18,15 +18,16 @@ const (
 
 type bankCard struct {
 	Number     string `json:"number"`
+	CVV        string `json:"cvv"`
 	Expiry     string `json:"expiry"`
-	Cvv        string `json:"cvv"`
 	HolderName string `json:"holder_name"`
+	Amount     int64  `json:"amount"`
+	Currency   string `json:"currency"`
 }
 
-type bankRequest struct {
-	Card     *bankCard `json:"card"`
-	Amount   int64     `json:"amount"`
-	Currency string    `json:"currency"`
+type depositCardRequest struct {
+	Card   bankCard `json:"card"`
+	Amount int64    `json:"amount"`
 }
 
 type bankResponse struct {
@@ -58,16 +59,9 @@ func NewPartnerShipAdaptor(client *http.Client, url string, logger *log.Logger) 
 }
 
 func (p BankAdaptor) Deposit(ctx context.Context, payment *Payment) error {
-	bankRequest := &bankRequest{
-		Card: &bankCard{
-			Number:     payment.CardInfo.cardNumber,
-			Expiry:     fmt.Sprintf("%s/%s", payment.CardInfo.ExpiryMonth, payment.CardInfo.ExpiryYear),
-			Cvv:        payment.CardInfo.cvv,
-			HolderName: payment.CardInfo.holderName,
-		},
-		Amount:   payment.Amount,
-		Currency: payment.Currency,
-	}
+	bankRequest := generateDepositRequest(payment)
+
+	// call bank api
 	buf := new(bytes.Buffer)
 	err := json.NewEncoder(buf).Encode(bankRequest)
 	if err != nil {
@@ -85,15 +79,13 @@ func (p BankAdaptor) Deposit(ctx context.Context, payment *Payment) error {
 		}
 	}()
 
-	if res.StatusCode != http.StatusOK {
-		return fmt.Errorf("bad request to partnerships: %d", res.StatusCode)
+	// parse and validate response
+	depositResponse, err := parseResponse(res)
+	if err != nil {
+		return err
 	}
 
-	var depositResponse bankResponse
-	if err := json.NewDecoder(res.Body).Decode(&depositResponse); err != nil {
-		return fmt.Errorf("could not decode the response body of partnerships: %w", err)
-	}
-
+	// update payment
 	payment.TrackingID = depositResponse.TransactionID
 	payment.StatusCode = depositResponse.Code
 
@@ -104,10 +96,36 @@ func (p BankAdaptor) Deposit(ctx context.Context, payment *Payment) error {
 	case StatusCodeFailed:
 		payment.Status = StatusFailed
 	case StatusCodePending:
-		payment.Status = StatusPending
+		payment.Status = StatusProcessing
 	default:
 		return fmt.Errorf("unknown status code: %s", depositResponse.Code)
 	}
 
 	return nil
+}
+
+func parseResponse(res *http.Response) (bankResponse, error) {
+	if res.StatusCode != http.StatusCreated {
+		return bankResponse{}, fmt.Errorf("bad request to partnerships: %d", res.StatusCode)
+	}
+
+	var depositResponse bankResponse
+	if err := json.NewDecoder(res.Body).Decode(&depositResponse); err != nil {
+		return bankResponse{}, fmt.Errorf("could not decode the response body of partnerships: %w", err)
+	}
+	return depositResponse, nil
+}
+
+func generateDepositRequest(payment *Payment) *depositCardRequest {
+	bankRequest := &depositCardRequest{
+		Card: bankCard{
+			Number:     payment.CardInfo.cardNumber,
+			Expiry:     fmt.Sprintf("%s/%s", payment.CardInfo.ExpiryMonth, payment.CardInfo.ExpiryYear),
+			CVV:        payment.CardInfo.cvv,
+			HolderName: payment.CardInfo.holderName,
+			Amount:     payment.Amount,
+			Currency:   payment.Currency,
+		},
+	}
+	return bankRequest
 }

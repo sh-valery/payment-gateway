@@ -22,9 +22,17 @@ type CardInfo struct {
 	holderName string
 }
 
-func (i CardInfo) GetMaskedNumber() string {
+func (i *CardInfo) GetMaskedNumber() string {
 	if len(i.cardNumber) < 4 {
 		return "****"
 	}
 	return "**** **** **** " + i.cardNumber[len(i.cardNumber)-4:]
+}
+
+func (i *CardInfo) SetCardNumber(cardNumber string) {
+	i.cardNumber = cardNumber
+}
+
+func (i *CardInfo) SetCVV(cvv string) {
+	i.cvv = cvv
 }

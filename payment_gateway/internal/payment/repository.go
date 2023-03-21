@@ -1,6 +1,9 @@
 package payment
 
-import "database/sql"
+import (
+	"database/sql"
+	"errors"
+)
 
 type MysqlRepositoryImpl struct {
 	db *sql.DB
@@ -10,7 +13,7 @@ func NewPaymentRepository(db *sql.DB) *MysqlRepositoryImpl {
 	return &MysqlRepositoryImpl{db: db}
 }
 
-func (r *MysqlRepositoryImpl) Store(p *Payment) error {
+func (r *MysqlRepositoryImpl) Create(p *Payment) error {
 	query := `insert into payments (uuid, merchant_id, tracking_id, card_token, status, status_code, amount, currency) 
 		    values (?, ?, ?, ?, ?, ?, ?, ?)`
 
@@ -35,4 +38,23 @@ func (r *MysqlRepositoryImpl) GetByID(ID string) (*Payment, error) {
 	}
 
 	return p, nil
+}
+
+func (r *MysqlRepositoryImpl) UpdateStatus(payment *Payment) error {
+	query := `update payments set status = ?, status_code = ? where uuid = ?`
+
+	res, err := r.db.Exec(query, payment.Status, payment.StatusCode, payment.ID)
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if rowsAffected == 0 {
+		return errors.New("no rows affected")
+	}
+
+	return nil
 }

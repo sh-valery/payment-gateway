@@ -56,6 +56,7 @@ func main() {
 	r.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("http://localhost:8080/swagger/docs/doc.json"), //The url pointing to API definition
 	))
+
 	r.Post("/api/v1/payment", handler.Payment)
 	r.Get("/api/v1/payment/status", handler.PaymentStatus)
 

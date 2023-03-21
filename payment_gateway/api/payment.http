@@ -1,11 +1,12 @@
-### Send POST request with json body
+### Succeed payment
 POST http://localhost:8080/api/v1/payment
 Content-Type: application/json
 
 {
   "card": {
     "number": "4242424242424242",
-    "expiry": "2020-12-31",
+    "expiry_month": "12",
+    "expiry_year": "2042",
     "cvv": "123",
     "holder_name": "John Doe"
   },
@@ -16,7 +17,7 @@ Content-Type: application/json
 > {%
 
 client.test("Request executed successfully", function() {
-  client.assert(response.status === 201, "Response status is not 200");
+  client.assert(response.status === 200, "Response status is not 200");
 });
 
 client.test("Response content-type is json", function() {
@@ -24,7 +25,78 @@ client.test("Response content-type is json", function() {
   client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
 });
 
-client.test("Positive card code", function() {
-  client.assert(response.body.hasOwnProperty("headers"), "Cannot find 'headers' option in response");
+client.test("Response body", function() {
+  var body = JSON.parse(responseBody);
+  client.assert(body.status === "succeeded", "Expected 'succeeded' but received '" + body.status + "'");
+  client.assert(body.code === "0", "Expected '0' but received '" + body.code + "'");
+});
+%}
+
+### Fail payment
+POST http://localhost:8080/api/v1/payment
+Content-Type: application/json
+
+{
+  "card": {
+    "number": "4000000000000002",
+    "expiry_month": "12",
+    "expiry_year": "2042",
+    "cvv": "123",
+    "holder_name": "John Doe"
+  },
+  "amount": 1000,
+  "currency": "USD"
+}
+
+> {%
+
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+
+client.test("Response content-type is json", function() {
+  var type = response.contentType.mimeType;
+  client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+});
+
+client.test("Response body", function() {
+  var body = JSON.parse(responseBody);
+  client.assert(body.status === "failed", "Expected 'failed' but received '" + body.status + "'");
+  client.assert(body.code === "100", "Expected '0' but received '" + body.code + "'");
+});
+%}
+
+
+### Process payment
+POST http://localhost:8080/api/v1/payment
+Content-Type: application/json
+
+{
+  "card": {
+    "number": "4000000000009995",
+    "expiry_month": "12",
+    "expiry_year": "2042",
+    "cvv": "123",
+    "holder_name": "John Doe"
+  },
+  "amount": 1000,
+  "currency": "USD"
+}
+
+> {%
+
+client.test("Request executed successfully", function() {
+  client.assert(response.status === 200, "Response status is not 200");
+});
+
+client.test("Response content-type is json", function() {
+  var type = response.contentType.mimeType;
+  client.assert(type === "application/json", "Expected 'application/json' but received '" + type + "'");
+});
+
+client.test("Response body", function() {
+  var body = JSON.parse(responseBody);
+  client.assert(body.status === "processing", "Expected 'processing' but received '" + body.status + "'");
+  client.assert(body.code === "200", "Expected '0' but received '" + body.code + "'");
 });
 %}

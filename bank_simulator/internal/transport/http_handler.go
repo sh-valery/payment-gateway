@@ -45,6 +45,7 @@ func (h *Handler) ChargeCard(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	h.logger.Printf("Received request body %+v", reqBody)
 
 	// Validate card
 	err = h.svc.ValidateCard(reqBody.Card)

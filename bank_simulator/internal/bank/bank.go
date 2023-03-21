@@ -10,6 +10,8 @@ type Card struct {
 	CVV        string `json:"cvv"`
 	Expiry     string `json:"expiry"`
 	HolderName string `json:"holder_name"`
+	Amount     int64  `json:"amount"`
+	Currency   string `json:"currency"`
 }
 
 type CardChargerResponse struct {
