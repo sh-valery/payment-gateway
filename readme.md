@@ -17,9 +17,10 @@ Payment gateway workflow
 * Merchant sends a request to the payment gateway
 * Payment gateway validates request
 * Payment gateway store the payment in the database with *INIT* status
+* Payment gateway store card info in encrypted form
 * Payment gateway sends a request to the bank
 * Payment gateway matches the bank status code to the payment gateway statuses
-* Payment gateway updates the payment in the database
+* Payment gateway updates the payment in the database according to the bank response
 * Payment gateway returns the response to the merchant
 
 
@@ -30,8 +31,10 @@ Service has 2 endpoints:
 * GET /payments/{id} - get payment by id
 
 Detailed API description is in the [openapi.yaml](./payment_gateway/cmd/web_server/docs/swagger.yaml) file.
-It served by the gateway service on [the swagger endpoint](http://localhost:8080/swagger/index.html#/).
+Api docs are served by the gateway service on [the swagger endpoint](http://localhost:8080/swagger/index.html#/).
 
+Bank card details are stored seperatly from payment statuses in encrypted form. It's done to avoid storing sensitive data in the database.
+See CardRepository for details.
 
 # Bank simulator
 Bank simulator is a service that accepts a request from the payment gateway, and returns the response to the payment gateway.
@@ -101,9 +104,11 @@ Requests are described in the [payment.http](./payment_gateway/api/payment.http)
 
 # Assumptions and Improvements
 
+* ~~Enrypt card info~~
+* ~~Add swagger docs~~
+* ~~Add funcitonal tests for api~~
+* Add middleware auth to add merchant information based on their key
 * Payment gateway supports only api integration, hosted page integration can be added later
 * Payment gateway and bank simulator doesn't support 3d secure payments and emulation
-* Payment gateway doesn't support refunds
-* Card info is stored in the same table, where payments should be stored separately, data access layer is isolated by
-the repository pattern, so dal can be easily changed
-* Payment gateway doesn't support multiple currencies
+* Add configs
+* Add tests that affects the database layer with running db in docker for every test run
