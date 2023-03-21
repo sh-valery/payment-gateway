@@ -2,25 +2,6 @@ package payment
 
 import "context"
 
-type Payment struct {
-	ID         string
-	MerchantID string
-	TrackingID string // id of the payment in the payment processor
-	CardInfo   CardInfo
-	Status     string
-	Amount     int64
-	Currency   string
-}
-
-type CardInfo struct {
-	ID          string
-	CardToken   string
-	ExpiryMonth string
-	ExpiryYear  string
-	CVV         string
-	CardNumber  string // todo put card to a separate table, store mask
-}
-
 type Repository interface {
 	Store(payment *Payment) error
 	GetByID(ID string) (*Payment, error)
@@ -35,11 +16,11 @@ type UUIDGenerator interface {
 }
 
 type CardProcessor interface {
-	Deposit(ctx context.Context, cardToken string, amount int64, currency string) error
+	Deposit(ctx context.Context, payment *Payment) error
 }
 
 type Service interface {
-	ProcessPayment(payment *Payment) (*Payment, error)
+	ProcessPayment(payment *Payment) error
 	GetPaymentDetails(id string) (*Payment, error)
 }
 
@@ -59,12 +40,12 @@ func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardT
 	}
 }
 
-func (s *ServiceImpl) ProcessPayment(payment *Payment) (*Payment, error) {
+func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 	// Use a payment processor to tokenize the card data and retrieve a card token
 	//card := payment.CardInfo
 
 	// todo tokenize card
-	//_, err := s.pi.TokenizeCard(card.CardNumber, card.ExpiryMonth, card.ExpiryYear, card.CVV)
+	//_, err := s.pi.TokenizeCard(card.cardNumber, card.ExpiryMonth, card.ExpiryYear, card.cvv)
 	//if err != nil {
 	//	return nil, err
 	//}
@@ -76,19 +57,20 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) (*Payment, error) {
 	// Store the payment in the repository
 	err := s.repo.Store(payment)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	err = s.cardProcessor.Deposit(context.Background(), payment.CardInfo.CardToken, payment.Amount, payment.Currency)
+	err = s.cardProcessor.Deposit(context.Background(), payment)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	s.repo.Store(payment)
+	err = s.repo.Store(payment)
+	if err != nil {
+		return err
+	}
 
-	// Return the payment entity with the masked card number
-	//payment.CardNumber = maskCardNumber(cardNumber)
-	return payment, nil
+	return nil
 }
 
 func (s *ServiceImpl) GetPaymentDetails(id string) (*Payment, error) {
@@ -98,7 +80,5 @@ func (s *ServiceImpl) GetPaymentDetails(id string) (*Payment, error) {
 		return nil, err
 	}
 
-	// Mask the card number before returning the payment entity
-	// todo mask card number
 	return payment, nil
 }

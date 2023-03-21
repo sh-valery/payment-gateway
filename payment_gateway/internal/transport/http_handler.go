@@ -29,8 +29,11 @@ type PaymentRequest struct {
 }
 
 type PaymentResponse struct {
-	Status string `json:"status"`
-	Code   string `json:"code"`
+	ID               string
+	TrackingID       string
+	MaskedCardNumber string
+	Status           string `json:"status"`
+	Code             string `json:"code"`
 }
 
 func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
@@ -42,7 +45,7 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	resp, err := h.svc.ProcessPayment(r.Payment)
+	err := h.svc.ProcessPayment(r.Payment)
 	if err != nil {
 		h.logger.Printf("Error charging card: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -51,8 +54,20 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(resp)
+	resp := &PaymentResponse{
+		ID:               r.ID,
+		TrackingID:       r.TrackingID,
+		MaskedCardNumber: r.CardInfo.GetMaskedNumber(),
+		Status:           r.Status,
+		Code:             r.StatusCode,
+	}
 
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		h.logger.Printf("Error encoding response body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }
 
 // PaymentStatus

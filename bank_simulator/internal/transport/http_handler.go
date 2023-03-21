@@ -2,7 +2,7 @@ package transport
 
 import (
 	"encoding/json"
-	"github.com/sh-valery/payment-gateway/internal/bank"
+	"github.com/sh-valery/payment-gateway/bank_simulator/internal/bank"
 	"log"
 	"net/http"
 )

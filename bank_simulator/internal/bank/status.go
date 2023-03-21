@@ -8,6 +8,6 @@ const (
 
 const (
 	StatusCodeSucceed = "0"
-	StatusCodeFailed  = "1"
-	StatusCodePending = "2"
+	StatusCodeFailed  = "100"
+	StatusCodePending = "200"
 )

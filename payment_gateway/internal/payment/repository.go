@@ -11,11 +11,11 @@ func NewPaymentRepository(db *sql.DB) *MysqlRepositoryImpl {
 }
 
 func (r *MysqlRepositoryImpl) Store(p *Payment) error {
-	err := r.db.QueryRow(`
-		INSERT INTO payments (id, merchant_id, tracking_id, card_token, status, amount, currency) 
-		VALUES ($1, $2, $3, $4, $5, $6, $7) 
-		RETURNING id`,
-		p.ID, p.MerchantID, p.TrackingID, p.CardInfo.CardToken, p.Status, p.Amount, p.Currency).Scan(&p.ID)
+	query := `insert into payments (uuid, merchant_id, tracking_id, card_token, status, status_code, amount, currency) 
+		    values (?, ?, ?, ?, ?, ?, ?, ?)`
+
+	_, err := r.db.Exec(query,
+		p.ID, p.MerchantID, p.TrackingID, p.CardInfo.CardToken, p.Status, p.StatusCode, p.Amount, p.Currency)
 	if err != nil {
 		return err
 	}
@@ -27,9 +27,9 @@ func (r *MysqlRepositoryImpl) GetByID(ID string) (*Payment, error) {
 	p := &Payment{}
 
 	err := r.db.QueryRow(`
-		SELECT id, merchant_id, tracking_id, card_token, status, amount, currency 
+		SELECT uuid, merchant_id, tracking_id, card_token, status, amount, currency 
 		FROM payments 
-		WHERE id = $1`, ID).Scan(&p.ID, &p.MerchantID, &p.TrackingID, &p.CardInfo.CardToken, &p.Status, &p.Amount, &p.Currency)
+		WHERE uuid = $1`, ID).Scan(&p.ID, &p.MerchantID, &p.TrackingID, &p.CardInfo.CardToken, &p.Status, &p.Amount, &p.Currency)
 	if err != nil {
 		return nil, err
 	}

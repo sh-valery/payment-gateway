@@ -33,13 +33,22 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer db.Close()
+	defer func() {
+		err := db.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 
 	// create service
 	logger.Println("Creating payment service...")
 	repository := payment.NewPaymentRepository(db)
 	uuidGenerator := payment.UUID{}
-	service := payment.NewPaymentService(repository, nil, nil, uuidGenerator)
+	cardProcessor, err := payment.NewPartnerShipAdaptor(http.DefaultClient, "http://localhost:8081/api/v1", nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	service := payment.NewPaymentService(repository, cardProcessor, nil, uuidGenerator)
 	handler := transport.NewHandler(service, logger)
 
 	// set routing
