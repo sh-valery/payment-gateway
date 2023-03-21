@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi"
 	"github.com/sh-valery/payment-gateway/payment_gateway/internal/payment"
 	"log"
 	"net/http"
@@ -55,7 +56,7 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 	p := &payment.Payment{
 		Amount:   r.Amount,
 		Currency: r.Currency,
-		CardInfo: payment.CardInfo{
+		CardInfo: &payment.CardInfo{
 			ExpiryMonth: r.Card.ExpiryMonth,
 			ExpiryYear:  r.Card.ExpiryYear,
 		},
@@ -101,5 +102,33 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 // @Router       /payment/{id} [get]
 func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("PaymentStatus request", req)
+	paymentID := chi.URLParam(req, "id")
+	if paymentID == "" {
+		h.logger.Printf("PaymentID is empty")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	p, err := h.svc.GetPaymentDetails(paymentID)
+	if err != nil {
+		h.logger.Printf("Error getting payment details: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
+	resp := &PaymentResponse{
+		ID:               p.ID,
+		TrackingID:       p.TrackingID,
+		MaskedCardNumber: p.CardInfo.GetMaskedNumber(),
+		Status:           p.Status,
+		Code:             p.StatusCode,
+	}
+
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		h.logger.Printf("Error encoding response body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 }

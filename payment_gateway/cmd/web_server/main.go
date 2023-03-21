@@ -48,7 +48,8 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	service := payment.NewPaymentService(repository, cardProcessor, nil, uuidGenerator)
+
+	service := payment.NewPaymentService(repository, cardProcessor, repository, uuidGenerator)
 	handler := transport.NewHandler(service, logger)
 
 	// set routing
@@ -58,7 +59,7 @@ func main() {
 	))
 
 	r.Post("/api/v1/payment", handler.Payment)
-	r.Get("/api/v1/payment/status", handler.PaymentStatus)
+	r.Get("/api/v1/payment/{id}", handler.PaymentStatus)
 
 	// start server
 	logger.Println("Starting server at port 8080\n")

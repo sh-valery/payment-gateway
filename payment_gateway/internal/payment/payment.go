@@ -4,12 +4,14 @@ import "context"
 
 type Repository interface {
 	Create(payment *Payment) error
-	UpdateStatus(payment *Payment) error
+	UpdateStatusTracking(payment *Payment) error
 	GetByID(ID string) (*Payment, error)
 }
 
-type CardTokenizer interface {
-	TokenizeCard(cardNumber, expiryMonth, expiryYear, cvv string) (string, error)
+// CardRepository should be PCI DSS repository
+type CardRepository interface {
+	SaveCardInfo(card *CardInfo) error
+	GetCardByID(ID string) (*CardInfo, error)
 }
 
 type UUIDGenerator interface {
@@ -28,11 +30,11 @@ type Service interface {
 type ServiceImpl struct {
 	repo          Repository
 	cardProcessor CardProcessor
-	pi            CardTokenizer
+	pi            CardRepository
 	uuid          UUIDGenerator
 }
 
-func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardTokenizer, uuid UUIDGenerator) Service {
+func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardRepository, uuid UUIDGenerator) Service {
 	return &ServiceImpl{
 		repo:          repo,
 		cardProcessor: processor,
@@ -42,21 +44,20 @@ func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardT
 }
 
 func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
-	// Use a payment processor to tokenize the card data and retrieve a card token
-	//card := payment.CardInfo
 
-	// todo tokenize card
-	//_, err := s.pi.TokenizeCard(card.cardNumber, card.ExpiryMonth, card.ExpiryYear, card.cvv)
-	//if err != nil {
-	//	return nil, err
-	//}
-
+	// Save the card info in the PCI DSS repository
+	card := payment.CardInfo
+	card.ID = s.uuid.New()
+	err := s.pi.SaveCardInfo(card)
+	if err != nil {
+		return err
+	}
 	// Create a payment entity with the card token and other payment details
 	payment.ID = s.uuid.New()
 	payment.Status = "initiated"
 
 	// Create the payment in the repository
-	err := s.repo.Create(payment)
+	err = s.repo.Create(payment)
 	if err != nil {
 		return err
 	}
@@ -66,7 +67,7 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 		return err
 	}
 
-	err = s.repo.UpdateStatus(payment)
+	err = s.repo.UpdateStatusTracking(payment)
 	if err != nil {
 		return err
 	}
@@ -80,6 +81,12 @@ func (s *ServiceImpl) GetPaymentDetails(id string) (*Payment, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	card, err := s.pi.GetCardByID(payment.CardInfo.ID)
+	if err != nil {
+		return nil, err
+	}
+	payment.CardInfo = card
 
 	return payment, nil
 }

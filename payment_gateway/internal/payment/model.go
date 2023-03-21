@@ -8,18 +8,17 @@ type Payment struct {
 	StatusCode string
 	Amount     int64
 	Currency   string
-	CardInfo   CardInfo
+	CardInfo   *CardInfo
 }
 
 type CardInfo struct {
 	ID          string
-	CardToken   string
 	ExpiryMonth string
 	ExpiryYear  string
 	// no access outside the package
-	cvv        string
-	cardNumber string
-	holderName string
+	cvv        string `gocrypt:"aes"`
+	cardNumber string `gocrypt:"aes"`
+	holderName string `gocrypt:"aes"`
 }
 
 func (i *CardInfo) GetMaskedNumber() string {
