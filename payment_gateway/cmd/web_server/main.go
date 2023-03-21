@@ -28,7 +28,8 @@ func main() {
 
 	// create db connection
 	logger.Println("Connecting to database...")
-	db, err := sql.Open("mysql", "username:password@tcp(db:3306)/payment_gateway")
+	db, err := sql.Open("mysql", "root:pass@tcp(localhost:3306)/payment_gateway")
+	//db, err := sql.Open("mysql", "username:password@tcp(db:3306)/payment_gateway")
 	if err != nil {
 		log.Fatal(err)
 	}
