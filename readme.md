@@ -73,11 +73,14 @@ tests covered business logic and bank adaptor, they don't cover
 db layer and web server.
 
 ## Run services
-Required Docker
+Required Docker. 
+    
+*It was tested on MacOS 12.04 and Ubuntu 20.04. Go 1.19 and Docker version 20.10.17*
+
 
 ### 1. Run services
-
 ```bash
+cd ./payment-gateway
 docker-compose up -d
  ```
 
@@ -89,7 +92,7 @@ check that all services are running
 docker ps
 ```
 
-you should see 3 running services
+you should see 3 running containers
 
 ```bash
 CONTAINER ID   IMAGE                                       COMMAND                  CREATED         STATUS         PORTS                               NAMES
@@ -98,13 +101,26 @@ e3aa7afcffbf   payment-gateway_payment_gateway             "/bin/sh -c '/app/weâ
 99f80d54c9ce   payment-gateway_bank_simulator              "/bin/sh -c '/app/weâ€¦"   5 minutes ago   Up 2 minutes   8080/tcp                            payment-gateway_bank_simulator_1
 ```
 
-### (first run only) 3. Run migrations for the db
+### 3. (first run only) Run migrations for the db
 
 ```bash
  docker exec -i payment-gateway_db_1 sh -c 'exec mysql -u root -ppass' < ./payment_gateway/db/migration/0001_create_payments_tables.sql
-
 ```
 
+check that tables were created
+```bash
+ docker exec  payment-gateway_db_1 sh -c "mysql -u root -ppass -t -e 'use payment_gateway; show tables;'"
+```  
+you should see
+    
+```
++---------------------------+
+| Tables_in_payment_gateway |
++---------------------------+
+| cards                     |
+| payments                  |
++---------------------------+
+```
 ### 4. Call api
 
 Api uses bearer auth, please use test merchant tokens
@@ -144,6 +160,25 @@ Fill in test data, you can use any test card from bank simulator
   "amount": 100,
   "currency": "USD"
 }
+```
+
+#### c. You can use curl
+
+```bash
+curl -X POST --location "http://localhost:8080/api/v1/payment" \
+    -H "Content-Type: application/json" \
+    -H "Authorization: Bearer first_merchant_mock_token" \
+    -d "{
+          \"card\": {
+            \"number\": \"4242424242424242\",
+            \"expiry_month\": \"12\",
+            \"expiry_year\": \"2042\",
+            \"cvv\": \"123\",
+            \"holder_name\": \"John Doe\"
+          },
+          \"amount\": 1000,
+          \"currency\": \"USD\"
+        }"
 ```
 
 # Assumptions and Improvements
