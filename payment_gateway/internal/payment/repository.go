@@ -54,10 +54,10 @@ func (r *MysqlRepositoryImpl) GetByID(ID string) (*Payment, error) {
 	return p, nil
 }
 
-func (r *MysqlRepositoryImpl) UpdateStatusTracking(payment *Payment) error {
+func (r *MysqlRepositoryImpl) Update(ID, status, statusCode, trackingID string) error {
 	query := `update payments set status = ?, status_code = ?, tracking_id = ? where uuid = ?`
 
-	res, err := r.db.Exec(query, payment.Status, payment.StatusCode, payment.TrackingID, payment.ID)
+	res, err := r.db.Exec(query, status, statusCode, trackingID, ID)
 	if err != nil {
 		return err
 	}

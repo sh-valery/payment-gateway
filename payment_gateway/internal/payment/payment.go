@@ -1,17 +1,20 @@
 package payment
 
-import "context"
+import (
+	"context"
+	"errors"
+)
 
 type Repository interface {
 	Create(payment *Payment) error
-	UpdateStatusTracking(payment *Payment) error
-	GetByID(ID string) (*Payment, error)
+	Update(id, status, statusCode, trackingID string) error
+	GetByID(id string) (*Payment, error)
 }
 
 // CardRepository should be PCI DSS repository
 type CardRepository interface {
 	SaveCardInfo(card *CardInfo) error
-	GetCardByID(ID string) (*CardInfo, error)
+	GetCardByID(id string) (*CardInfo, error)
 }
 
 type UUIDGenerator interface {
@@ -24,7 +27,7 @@ type CardProcessor interface {
 
 type Service interface {
 	ProcessPayment(payment *Payment) error
-	GetPaymentDetails(id string) (*Payment, error)
+	GetPaymentDetails(id string, merchantID string) (*Payment, error)
 }
 
 type ServiceImpl struct {
@@ -44,7 +47,6 @@ func NewPaymentService(repo Repository, processor CardProcessor, tokenizer CardR
 }
 
 func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
-
 	// Save the card info in the PCI DSS repository
 	card := payment.CardInfo
 	card.ID = s.uuid.New()
@@ -67,7 +69,7 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 		return err
 	}
 
-	err = s.repo.UpdateStatusTracking(payment)
+	err = s.repo.Update(payment.ID, payment.Status, payment.StatusCode, payment.TrackingID)
 	if err != nil {
 		return err
 	}
@@ -75,11 +77,15 @@ func (s *ServiceImpl) ProcessPayment(payment *Payment) error {
 	return nil
 }
 
-func (s *ServiceImpl) GetPaymentDetails(id string) (*Payment, error) {
+func (s *ServiceImpl) GetPaymentDetails(id string, merchantID string) (*Payment, error) {
 	// Retrieve the payment entity from the repository
 	payment, err := s.repo.GetByID(id)
 	if err != nil {
 		return nil, err
+	}
+
+	if payment.MerchantID != merchantID {
+		return nil, errors.New("merchant id does not match")
 	}
 
 	card, err := s.pi.GetCardByID(payment.CardInfo.ID)

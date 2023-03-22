@@ -2,6 +2,7 @@ package transport
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/go-chi/chi"
 	"github.com/sh-valery/payment-gateway/payment_gateway/internal/payment"
 	"log"
@@ -53,9 +54,18 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
+	merchantID := req.Header.Get("X-Merchant-ID")
+	if merchantID == "" {
+		h.logger.Printf("Merchant ID not provided")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
 	p := &payment.Payment{
-		Amount:   r.Amount,
-		Currency: r.Currency,
+		Amount:     r.Amount,
+		Currency:   r.Currency,
+		MerchantID: merchantID,
 		CardInfo: &payment.CardInfo{
 			ExpiryMonth: r.Card.ExpiryMonth,
 			ExpiryYear:  r.Card.ExpiryYear,
@@ -102,19 +112,26 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 // @Router       /payment/{id} [get]
 func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("PaymentStatus request", req)
-	paymentID := chi.URLParam(req, "id")
-	if paymentID == "" {
-		h.logger.Printf("PaymentID is empty")
+	// validate
+	err := h.validateRequest(w, req)
+	if err != nil {
+		h.logger.Printf("Error validating request: %v", err)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	p, err := h.svc.GetPaymentDetails(paymentID)
+
+	merchantID := req.Header.Get("X-Merchant-ID")
+	paymentID := chi.URLParam(req, "id")
+
+	// call service layer
+	p, err := h.svc.GetPaymentDetails(paymentID, merchantID)
 	if err != nil {
 		h.logger.Printf("Error getting payment details: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	// return response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	resp := &PaymentResponse{
@@ -131,4 +148,21 @@ func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+func (h *Handler) validateRequest(w http.ResponseWriter, req *http.Request) error {
+	paymentID := chi.URLParam(req, "id")
+	if paymentID == "" {
+		h.logger.Printf("PaymentID is empty")
+		w.WriteHeader(http.StatusBadRequest)
+		return errors.New("paymentID is empty")
+	}
+
+	merchantID := req.Header.Get("X-Merchant-ID")
+	if merchantID == "" {
+		h.logger.Printf("Merchant ID not provided")
+		w.WriteHeader(http.StatusBadRequest)
+		return errors.New("merchantID is empty")
+	}
+	return nil
 }
