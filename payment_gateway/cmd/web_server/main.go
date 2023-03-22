@@ -53,7 +53,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	service := payment.NewPaymentService(repository, cardProcessor, repository, uuidGenerator)
+	service := payment.NewPaymentService(repository, cardProcessor, repository, uuidGenerator, nil)
 	handler := transport.NewHandler(service, logger)
 
 	// set routing
