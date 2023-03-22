@@ -16,9 +16,9 @@ type CardInfo struct {
 	ExpiryMonth string
 	ExpiryYear  string
 	// no access outside the package
-	cvv        string `gocrypt:"aes"`
-	cardNumber string `gocrypt:"aes"`
-	holderName string `gocrypt:"aes"`
+	cvv        string
+	cardNumber string
+	holderName string
 }
 
 func (i *CardInfo) GetMaskedNumber() string {

@@ -15,7 +15,7 @@
     "host": "localhost:8080",
     "basePath": "/api/v1/",
     "paths": {
-        "/payment/": {
+        "/payment": {
             "post": {
                 "security": [
                     {

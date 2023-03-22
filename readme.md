@@ -92,9 +92,16 @@ Api uses bearer auth, please use test tokens
     first_merchant_mock_token
     second_merchant_mock_token
 
-#### a. You can send api requests with similar way
+#### a. Use api file (recommended)
+Requests are described in the [payment.http](./payment_gateway/api/payment.http) file.
+Call it from IDEA http client or use curl
+
+
+#### b. You can send api requests with similar way
 
 Open swagger docs and call api from there
+http://localhost:8080/swagger/index.html#/
+
 Put token in the auth field in format
     
     Bearer <token>
@@ -102,15 +109,23 @@ Put token in the auth field in format
     for example:
     Bearer first_merchant_mock_token    
 
-http://localhost:8080/swagger/index.html#/
+Fill in test data, you can use any test card from bank simulator
 
-
-#### b. Use api file
-Requests are described in the [payment.http](./payment_gateway/api/payment.http) file.
-Call it from IDEA http client or use curl
-
-```bash
+```json
+{
+  "card": {
+    "number": "4242424242424242",
+    "exp_month": 12,
+    "exp_year": 2022,
+    "cvv": "123"
+  },
+  "amount": 100,
+  "currency": "USD"
+}
 ```
+
+
+
 
 # Assumptions and Improvements
 
@@ -123,4 +138,5 @@ Call it from IDEA http client or use curl
 * Payment gateway supports only api integration, hosted page integration can be added later
 * Payment gateway and bank simulator doesn't support 3d secure payments and emulation
 * Add configs
+* Improve validators in payment gateway
 * Add tests that affects the database layer with running db in docker for every test run

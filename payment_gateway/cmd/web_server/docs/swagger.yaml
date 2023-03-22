@@ -42,7 +42,7 @@ info:
   title: Payment Gateway
   version: "1.0"
 paths:
-  /payment/:
+  /payment:
     post:
       consumes:
       - application/json

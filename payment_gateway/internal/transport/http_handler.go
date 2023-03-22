@@ -55,7 +55,7 @@ type PaymentResponse struct {
 // @Param request body PaymentRequest true "Payment Request"
 // @Success      200  {object}  PaymentResponse
 // @Failure      400  string      string  "Bad Request"
-// @Router       /payment/ [post]
+// @Router       /payment [post]
 // @Security BearerAuth
 func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("Received request to charge card %+v", req)
