@@ -19,13 +19,12 @@ type MysqlRepositoryImpl struct {
 func NewPaymentRepository(db *sql.DB) *MysqlRepositoryImpl {
 	return &MysqlRepositoryImpl{
 		db:        db,
-		cryptoKey: []byte("mock_key_16b_len"), // todo put to config 16b
+		cryptoKey: Config.CryptoKey,
 	}
 }
 
 func (r *MysqlRepositoryImpl) Create(p *Payment) error {
-	// todo card_token -> card_id
-	query := `insert into payments (uuid, merchant_id, tracking_id, card_token, status, status_code, amount, currency) 
+	query := `insert into payments (uuid, merchant_id, tracking_id, card_id, status, status_code, amount, currency) 
 		    values (?, ?, ?, ?, ?, ?, ?, ?)`
 
 	_, err := r.db.Exec(query,
@@ -42,7 +41,7 @@ func (r *MysqlRepositoryImpl) GetByID(ID string) (*Payment, error) {
 		CardInfo: &CardInfo{},
 	}
 
-	query := `SELECT uuid, merchant_id, tracking_id, card_token, status, status_code, amount, currency 
+	query := `SELECT uuid, merchant_id, tracking_id, card_id, status, status_code, amount, currency 
 		FROM payments 
 		WHERE uuid = ?`
 	err := r.db.QueryRow(query, ID).

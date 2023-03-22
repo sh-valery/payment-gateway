@@ -3,7 +3,7 @@ create table if not exists payment_gateway.payments
     uuid        varchar(36) primary key,
     merchant_id varchar(36) not null,
     tracking_id varchar(36) not null,
-    card_token  varchar(36) not null,
+    card_id  varchar(36) not null,
     amount      integer     not null,
     currency    varchar(3)  not null,
     status      varchar(32) not null,

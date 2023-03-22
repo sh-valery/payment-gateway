@@ -29,11 +29,12 @@ import (
 // @name Authorization
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
+	payment.InitTestConfig()
+	logger.Printf("Run gateway with config: %+v", payment.Config)
 
 	// create db connection
 	logger.Println("Connecting to database...")
-	db, err := sql.Open("mysql", "root:pass@tcp(localhost:3306)/payment_gateway")
-	//db, err := sql.Open("mysql", "username:password@tcp(db:3306)/payment_gateway")
+	db, err := sql.Open("mysql", payment.Config.DBConnect)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -48,7 +49,7 @@ func main() {
 	logger.Println("Creating payment service...")
 	repository := payment.NewPaymentRepository(db)
 	uuidGenerator := payment.UUID{}
-	cardProcessor, err := payment.NewPartnerShipAdaptor(http.DefaultClient, "http://localhost:8081/api/v1", nil)
+	cardProcessor, err := payment.NewPartnerShipAdaptor(http.DefaultClient, payment.Config.BankURL, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
