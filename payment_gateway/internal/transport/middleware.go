@@ -2,7 +2,7 @@ package transport
 
 import "net/http"
 
-func bearerAuthMiddleware(next http.Handler) http.Handler {
+func BearerAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		bearerToken := r.Header.Get("Authorization")
 
