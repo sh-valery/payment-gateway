@@ -5,6 +5,7 @@ import (
 	"errors"
 )
 
+//go:generate mockgen -source=payment.go -destination=./mock/payment.go -package=mock
 type Repository interface {
 	Create(payment *Payment) error
 	Update(id, status, statusCode, trackingID string) error
