@@ -1,6 +1,7 @@
 ### Succeed payment
 POST http://localhost:8080/api/v1/payment
 Content-Type: application/json
+Authorization: Bearer first_merchant_mock_token
 
 {
   "card": {
@@ -35,6 +36,7 @@ client.test("Response body", function() {
 ### Fail payment
 POST http://localhost:8080/api/v1/payment
 Content-Type: application/json
+Authorization: Bearer first_merchant_mock_token
 
 {
   "card": {
@@ -70,6 +72,7 @@ client.test("Response body", function() {
 ### Process payment
 POST http://localhost:8080/api/v1/payment
 Content-Type: application/json
+Authorization: Bearer first_merchant_mock_token
 
 {
   "card": {
@@ -105,3 +108,4 @@ client.global.set("lastPaymentID", response.body.ID);
 
 ### Check last payment status by ID
 GET http://localhost:8080/api/v1/payment/{{lastPaymentID}}
+Authorization: Bearer second_merchant_mock_token

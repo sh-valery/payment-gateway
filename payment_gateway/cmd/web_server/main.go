@@ -58,9 +58,11 @@ func main() {
 		httpSwagger.URL("http://localhost:8080/swagger/docs/doc.json"), //The url pointing to API definition
 	))
 
-	r.Use(transport.BearerAuthMiddleware)
-	r.Post("/api/v1/payment", handler.Payment)
-	r.Get("/api/v1/payment/{id}", handler.PaymentStatus)
+	r.Group(func(r chi.Router) {
+		r.Use(transport.BearerAuthMiddleware)
+		r.Post("/api/v1/payment", handler.Payment)
+		r.Get("/api/v1/payment/{id}", handler.PaymentStatus)
+	})
 
 	// start server
 	logger.Println("Starting server at port 8080\n")
