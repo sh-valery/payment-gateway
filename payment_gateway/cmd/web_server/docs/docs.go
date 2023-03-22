@@ -18,8 +18,57 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/payment/": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Create Payment",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "payment"
+                ],
+                "parameters": [
+                    {
+                        "description": "Payment Request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/transport.PaymentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/transport.PaymentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/payment/{id}": {
             "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
                 "description": "Get Payment Status by id",
                 "consumes": [
                     "application/json"
@@ -33,7 +82,7 @@ const docTemplate = `{
                 "summary": "Get Payment Status",
                 "parameters": [
                     {
-                        "type": "integer",
+                        "type": "string",
                         "description": "Transaction ID",
                         "name": "id",
                         "in": "path",
@@ -58,16 +107,63 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "transport.PaymentRequest": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "integer"
+                },
+                "card": {
+                    "type": "object",
+                    "properties": {
+                        "cvv": {
+                            "type": "string"
+                        },
+                        "expiry_month": {
+                            "type": "string"
+                        },
+                        "expiry_year": {
+                            "type": "string"
+                        },
+                        "holder_name": {
+                            "type": "string"
+                        },
+                        "number": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "currency": {
+                    "type": "string"
+                }
+            }
+        },
         "transport.PaymentResponse": {
             "type": "object",
             "properties": {
                 "code": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
+                "maskedCardNumber": {
+                    "type": "string"
+                },
                 "status": {
+                    "type": "string"
+                },
+                "trackingID": {
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
@@ -77,7 +173,7 @@ var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
 	BasePath:         "/api/v1/",
-	Schemes:          []string{"https"},
+	Schemes:          []string{"http"},
 	Title:            "Payment Gateway",
 	Description:      "HTTP API for payment gateway",
 	InfoInstanceName: "swagger",

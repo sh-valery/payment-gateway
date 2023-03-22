@@ -46,6 +46,17 @@ type PaymentResponse struct {
 	Code             string `json:"code"`
 }
 
+// Payment
+// @Summary
+// @Description  Create Payment
+// @Tags         payment
+// @Accept       json
+// @Produce      json
+// @Param request body PaymentRequest true "Payment Request"
+// @Success      200  {object}  PaymentResponse
+// @Failure      400  string      string  "Bad Request"
+// @Router       /payment/ [post]
+// @Security BearerAuth
 func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("Received request to charge card %+v", req)
 	r := &PaymentRequest{}
@@ -106,10 +117,11 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 // @Tags         payment
 // @Accept       json
 // @Produce      json
-// @Param        id   path      int  true  "Transaction ID"
+// @Param        id   path      string  true  "Transaction ID"
 // @Success      200  {object}  PaymentResponse
 // @Failure      400  string      string  "Bad Request"
 // @Router       /payment/{id} [get]
+// @Security BearerAuth
 func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 	h.logger.Printf("PaymentStatus request", req)
 	// validate
@@ -125,6 +137,11 @@ func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
 
 	// call service layer
 	p, err := h.svc.GetPaymentDetails(paymentID, merchantID)
+	if err != nil && err.Error() == "sql: no rows in result set" {
+		h.logger.Printf("Payment/Card not found for merchant: %v", merchantID)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	if err != nil {
 		h.logger.Printf("Error getting payment details: %v", err)
 		w.WriteHeader(http.StatusInternalServerError)

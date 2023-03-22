@@ -87,27 +87,39 @@ you should see 3 running services
 ```
 
 ### 4. Call api
+Api uses bearer auth, please use test tokens
+    
+    first_merchant_mock_token
+    second_merchant_mock_token
 
 #### a. You can send api requests with similar way
 
 Open swagger docs and call api from there
+Put token in the auth field in format
+    
+    Bearer <token>
+    
+    for example:
+    Bearer first_merchant_mock_token    
 
 http://localhost:8080/swagger/index.html#/
 
-```bash 
 
-
-```
 #### b. Use api file
 Requests are described in the [payment.http](./payment_gateway/api/payment.http) file.
+Call it from IDEA http client or use curl
 
+```bash
+```
 
 # Assumptions and Improvements
 
+
+* ~~Main BL~~
 * ~~Enrypt card info~~
 * ~~Add swagger docs~~
 * ~~Add funcitonal tests for api~~
-* Add middleware auth to add merchant information based on their key
+* ~~Add middleware auth to add merchant information based on their key~~
 * Payment gateway supports only api integration, hosted page integration can be added later
 * Payment gateway and bank simulator doesn't support 3d secure payments and emulation
 * Add configs

@@ -20,9 +20,13 @@ import (
 // @contact.name   Valery
 // @contact.url http://linkedin.com/in/valeryshapetin/
 
-// @schemes   https
+// @schemes   http
 // @host       localhost:8080
 // @BasePath  /api/v1/
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	logger := log.New(log.Writer(), log.Prefix(), log.Flags())
 

@@ -1,10 +1,36 @@
 basePath: /api/v1/
 definitions:
+  transport.PaymentRequest:
+    properties:
+      amount:
+        type: integer
+      card:
+        properties:
+          cvv:
+            type: string
+          expiry_month:
+            type: string
+          expiry_year:
+            type: string
+          holder_name:
+            type: string
+          number:
+            type: string
+        type: object
+      currency:
+        type: string
+    type: object
   transport.PaymentResponse:
     properties:
       code:
         type: string
+      id:
+        type: string
+      maskedCardNumber:
+        type: string
       status:
+        type: string
+      trackingID:
         type: string
     type: object
 host: localhost:8080
@@ -16,17 +42,18 @@ info:
   title: Payment Gateway
   version: "1.0"
 paths:
-  /payment/{id}:
-    get:
+  /payment/:
+    post:
       consumes:
       - application/json
-      description: Get Payment Status by id
+      description: Create Payment
       parameters:
-      - description: Transaction ID
-        in: path
-        name: id
+      - description: Payment Request
+        in: body
+        name: request
         required: true
-        type: integer
+        schema:
+          $ref: '#/definitions/transport.PaymentRequest'
       produces:
       - application/json
       responses:
@@ -38,9 +65,42 @@ paths:
           description: Bad Request
           schema:
             type: string
+      security:
+      - BearerAuth: []
+      tags:
+      - payment
+  /payment/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get Payment Status by id
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/transport.PaymentResponse'
+        "400":
+          description: Bad Request
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
       summary: Get Payment Status
       tags:
       - payment
 schemes:
-- https
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
