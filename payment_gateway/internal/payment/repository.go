@@ -73,13 +73,23 @@ func (r *MysqlRepositoryImpl) Update(ID, status, statusCode, trackingID string) 
 }
 
 func (r *MysqlRepositoryImpl) SaveCardInfo(card *CardInfo) error {
+	// encrypt data
 	encryptedCard, err := r.encrypt(card.cardNumber)
-	encryptedCVV, err := r.encrypt(card.cvv)
-	encryptedHolderName, err := r.encrypt(card.holderName)
 	if err != nil {
-		return errors.New("error encrypting card info")
+		return errors.New("error encrypting card number")
 	}
 
+	encryptedCVV, err := r.encrypt(card.cvv)
+	if err != nil {
+		return errors.New("error encrypting card cvv")
+	}
+
+	encryptedHolderName, err := r.encrypt(card.holderName)
+	if err != nil {
+		return errors.New("error encrypting card name")
+	}
+
+	// insert data
 	query := `insert into cards (uuid, card_number, card_holder, expiry_month, expiry_year, cvv)
     		values (?, ?, ?, ?, ?, ?)`
 	_, err = r.db.Exec(query, card.ID, encryptedCard, encryptedHolderName, card.ExpiryMonth, card.ExpiryYear, encryptedCVV)
