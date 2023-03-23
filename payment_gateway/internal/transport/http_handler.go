@@ -103,7 +103,7 @@ func (h *Handler) Payment(w http.ResponseWriter, req *http.Request) {
 // @Router       /payment/{id} [get]
 // @Security BearerAuth
 func (h *Handler) PaymentStatus(w http.ResponseWriter, req *http.Request) {
-	h.logger.Printf("PaymentStatus request", req)
+	h.logger.Printf("PaymentStatus request %+v", req)
 	// validate
 	err := h.validateRequest(w, req)
 	if err != nil {

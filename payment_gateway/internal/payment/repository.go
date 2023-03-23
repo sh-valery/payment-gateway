@@ -112,10 +112,18 @@ func (r *MysqlRepositoryImpl) GetCardByID(ID string) (*CardInfo, error) {
 	}
 
 	card.cardNumber, err = r.decrypt(encryptedCard)
+	if err != nil {
+		return nil, errors.New("error decrypting card number")
+	}
+
 	card.holderName, err = r.decrypt(encryptedHolderName)
+	if err != nil {
+		return nil, errors.New("error decrypting card holder")
+	}
+
 	card.cvv, err = r.decrypt(encryptedCVV)
 	if err != nil {
-		return nil, errors.New("error decrypting card info")
+		return nil, errors.New("error decrypting card cvv")
 	}
 
 	return card, nil
