@@ -181,6 +181,95 @@ curl -X POST --location "http://localhost:8080/api/v1/payment" \
         }"
 ```
 
+# Running in production with k8s
+## Run app in the production
+It's a short version for experienced users
+
+It requires:
+* k8s cluster and docker registry
+* Static files served by S3 + CDN or Nginx
+* Production database (MySQL, Postgres, etc)
+
+### 1. Setup BE
+prepare the image, set the correct registry name in docker-compose.yaml
+```shell
+    image: {your_registry_user}/bank_simulator
+```
+
+```shell
+docker login
+# user=shvalery
+user="{fill in your dockerhub username}"
+docker compose push 
+```
+
+setup k8s Secrets to store variables and sensitive data.
+prepare the file with variables
+```shell    
+vi secrets
+
+DATABASE_NAME=your_db_name
+DATABASE_USERNAME=your_db_user
+DATABASE_PASSWORD=your_db_user_password
+DATABASE_HOST=your_db_host
+
+```
+generate secrets
+```shell
+kubectl create secret generic payment-gateway-secrets --from-env-file=secrets
+```
+check results
+```shell
+kubectl describe secret payment-gateway-secrets
+```
+
+deploy to k8s, change shvalery to your registry username in deployment.yaml
+```shell
+
+kubectl apply -f ./deployments/bank-simulator-deployment.yaml
+kubectl apply -f ./deployments/bank_simulator-service.yaml
+
+kubectl apply -f ./deployments/payment-gateway-deployment.yaml
+kubectl apply -f ./deployments/payment_gateway-service.yaml
+
+kubectl apply -f ./deployments/payment-gateway-backend-networkpolicy.yaml
+kubectl apply -f ./deployments/log-volume-persistentvolumeclaim.yaml
+```
+
+check status
+```shell
+kubectl get deployments
+```
+
+```shell
+ kubectl get pods
+```
+
+
+you should see the following output:
+```
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+payment-gateway-app   3/3     3            3           38s
+```
+
+allow external access
+```shell
+kubectl apply -f ./payment-gateway-svc.yaml
+```
+
+check status
+```shell
+kubectl get svc payment-gateway
+```
+
+you should see the following output:
+```
+NAME           TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)          AGE
+payment-gateway   NodePort   10.101.133.32   <none>        8000:32690/TCP   32s
+```
+whereas 32690 is external port with api
+
+
 # Assumptions and Improvements
 
 * ~~Main BL and Tests~~

@@ -39,3 +39,5 @@ services:
       - log_volume:/var/log
     networks:
       - backend
+    expose:
+      - "8081"

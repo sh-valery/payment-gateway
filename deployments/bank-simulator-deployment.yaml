@@ -1,0 +1,37 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (HEAD)
+  labels:
+    io.kompose.service: bank-simulator
+  name: bank-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: bank-simulator
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.28.0 (HEAD)
+      labels:
+        io.kompose.network/payment-gateway-backend: "true"
+        io.kompose.service: bank-simulator
+    spec:
+      containers:
+        - image: shvalery/bank_simulator
+          name: bank-simulator
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/log
+              name: log-volume
+      restartPolicy: Always
+      volumes:
+        - name: log-volume
+          persistentVolumeClaim:
+            claimName: log-volume

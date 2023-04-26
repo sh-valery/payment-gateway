@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.28.0 (HEAD)
+  labels:
+    io.kompose.service: payment-gateway
+  name: payment-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: payment-gateway
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.28.0 (HEAD)
+      labels:
+        io.kompose.network/payment-gateway-backend: "true"
+        io.kompose.service: payment-gateway
+    spec:
+      containers:
+        - image: shvalery/payment_gateway
+          name: payment-gateway
+          ports:
+            - containerPort: 8080
+          resources: {}
+          volumeMounts:
+            - mountPath: /var/log
+              name: log-volume
+      restartPolicy: Always
+      volumes:
+        - name: log-volume
+          persistentVolumeClaim:
+            claimName: log-volume
