@@ -11,6 +11,7 @@ services:
       - db
       - bank_simulator
     build: ./payment_gateway
+    image: shvalery/payment_gateway
     volumes:
       - log_volume:/var/log
     ports:
@@ -33,6 +34,7 @@ services:
 
   bank_simulator:
     build: ./bank_simulator
+    image: shvalery/bank_simulator
     volumes:
       - log_volume:/var/log
     networks:
